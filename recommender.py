@@ -3,6 +3,7 @@
 #            All rights reserved.  #    João Henrique Souza                          #
 # ################################################################################## #
 
+from copy import copy
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
@@ -28,8 +29,7 @@ def recommend(title):
     cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
 
     # Get the index of the movie that matches the title
-    indices = pd.Series(
-        metadata.index, index=metadata['title']).drop_duplicates()
+    indices = pd.Series(metadata.index, index=metadata['title']).drop_duplicates()
 
     # Get the index of the movie that matches the title
     idx = indices[title]
@@ -48,6 +48,18 @@ def recommend(title):
 
     # Return the top 10 most similar movies
     return metadata['title'].iloc[movie_indices]
+
+
+def slice_dataset(dataset, slices_length=10000):
+    sliced_dataset = []
+    while not dataset.empty:
+        if len(dataset) < slices_length:
+            sliced_dataset.append(dataset[0:len(dataset)])
+            dataset = dataset[len(dataset):-1]
+        else:
+            sliced_dataset.append(dataset[0:slices_length])
+            dataset = dataset[slices_length:-1]
+    return sliced_dataset
 
 
 def main():
