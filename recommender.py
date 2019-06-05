@@ -10,21 +10,31 @@ from sklearn.metrics.pairwise import linear_kernel
 
 
 def recommend(title):
-    metadata = pandas.read_csv('datasets/movies_metadata_test.csv', low_memory=False)
-    metadata['overview'] = metadata['overview'].fillna('')
+    dataset = pandas.read_csv('datasets/movies_metadata_test.csv', low_memory=False)
+    dataset['overview'] = dataset['overview'].fillna('')
 
-    tfidf_matrix = create_tfidf_matrix(metadata['overview'])
+    # Find the movie in dataset by title
+    movie = dataset.loc[dataset['title'] == title]
 
-    indices = pandas.Series(metadata.index, index=metadata['title']).drop_duplicates()
-    idx = indices[title]
+    metadatas = slice_dataset(dataset, 1000)
+    results = []
+    for metadata in metadatas:
+        # Concatenate movie with all metadata slices
+        metadata = pandas.concat([metadata, movie])
 
-    cosine_similarity = linear_kernel(tfidf_matrix, tfidf_matrix)
-    similarity_score = list(enumerate(cosine_similarity[idx]))
-    similarity_score = sorted(similarity_score, key=lambda x: x[1], reverse=True)
-    similarity_score = similarity_score[1:11]
+        tfidf_matrix = create_tfidf_matrix(metadata['overview'])
 
-    movie_indices = [i[0] for i in similarity_score]
-    return metadata['title'].iloc[movie_indices]
+        cosine_similarity = linear_kernel(tfidf_matrix, tfidf_matrix)
+
+        # Get last score similarity because movie was concatenated at the end
+        similarity_score = list(enumerate(cosine_similarity[-1]))
+        similarity_score = sorted(similarity_score, key=lambda x: x[1], reverse=True)
+        similarity_score = similarity_score[1:11]
+
+        movie_indices = [i[0] for i in similarity_score]
+        results.append(metadata['title'].iloc[movie_indices])
+
+    return results
 
 
 def create_tfidf_matrix(content):
@@ -32,7 +42,7 @@ def create_tfidf_matrix(content):
     return tfidf.fit_transform(content)
 
 
-def slice_dataset(dataset, slices_length=10000):
+def slice_dataset(dataset, slices_length=1000):
     sliced_dataset = []
     while not dataset.empty:
         if len(dataset) < slices_length:
