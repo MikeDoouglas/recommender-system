@@ -4,35 +4,32 @@
 # ################################################################################## #
 
 from copy import copy
-import pandas as pd
+import pandas
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
 
 def recommend(title):
-    metadata = pd.read_csv('datasets/movies_metadata.csv', low_memory=False)
-
-    tfidf = TfidfVectorizer(stop_words='english')
-
+    metadata = pandas.read_csv('datasets/movies_metadata_test.csv', low_memory=False)
     metadata['overview'] = metadata['overview'].fillna('')
 
-    tfidf_matrix = tfidf.fit_transform(metadata['overview'])
+    tfidf_matrix = create_tfidf_matrix(metadata['overview'])
 
-    cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
-
-    indices = pd.Series(metadata.index, index=metadata['title']).drop_duplicates()
-
+    indices = pandas.Series(metadata.index, index=metadata['title']).drop_duplicates()
     idx = indices[title]
 
-    sim_scores = list(enumerate(cosine_sim[idx]))
+    cosine_similarity = linear_kernel(tfidf_matrix, tfidf_matrix)
+    similarity_score = list(enumerate(cosine_similarity[idx]))
+    similarity_score = sorted(similarity_score, key=lambda x: x[1], reverse=True)
+    similarity_score = similarity_score[1:11]
 
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-
-    sim_scores = sim_scores[1:11]
-
-    movie_indices = [i[0] for i in sim_scores]
-
+    movie_indices = [i[0] for i in similarity_score]
     return metadata['title'].iloc[movie_indices]
+
+
+def create_tfidf_matrix(content):
+    tfidf = TfidfVectorizer(stop_words='english')
+    return tfidf.fit_transform(content)
 
 
 def slice_dataset(dataset, slices_length=10000):
