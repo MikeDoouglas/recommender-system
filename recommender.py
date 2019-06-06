@@ -17,7 +17,7 @@ def recommend(title):
     movie = dataset.loc[dataset['title'] == title]
 
     metadatas = slice_dataset(dataset, 1000)
-    results = []
+    results = pandas.DataFrame()
     for metadata in metadatas:
         # Concatenate movie with all metadata slices
         metadata = pandas.concat([metadata, movie])
@@ -32,9 +32,26 @@ def recommend(title):
         similarity_score = similarity_score[1:11]
 
         movie_indices = [i[0] for i in similarity_score]
-        results.append(metadata['title'].iloc[movie_indices])
 
-    return results
+        if results.empty:
+            results = metadata.iloc[movie_indices]
+        else:
+            results = pandas.concat([results, metadata.iloc[movie_indices]])
+
+    results = pandas.concat([results, movie])
+    tfidf_matrix = create_tfidf_matrix(results['overview'])
+    cosine_similarity = linear_kernel(tfidf_matrix, tfidf_matrix)
+    similarity_score = list(enumerate(cosine_similarity[-1]))
+    similarity_score = sorted(similarity_score, key=lambda x: x[1], reverse=True)
+    similarity_score = similarity_score[1:11]
+    movie_indices = [i[0] for i in similarity_score]
+    top_ten = results.iloc[movie_indices]
+    return top_ten['title']
+
+
+def p(content):
+    print(content)
+    exit()
 
 
 def create_tfidf_matrix(content):
