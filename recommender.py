@@ -24,7 +24,9 @@ def recommend(title):
     metadata.loc[metadata['title'].isin(user_movies), ['watch']] = 1
 
     tfidf_matrix = tfidf.fit_transform(metadata['overview'])
-    
+
+    print_tfidf_result(tfidf)
+
     # Agora preciso transformar tfidf_matrix em um formato que de pra fazer o .dot
     # metadata['watch'].dot(tfidf_matrix)
 
@@ -36,6 +38,12 @@ def recommend(title):
     sim_scores = sim_scores[1:11]
     movie_indices = [i[0] for i in sim_scores]
     return metadata['title'].iloc[movie_indices]
+
+
+def print_tfidf_result(tfidf):
+    '''How to print TFIDF: https://tinyurl.com/y67dduma'''
+    df_idf = pd.DataFrame(tfidf.idf_, index=tfidf.get_feature_names(),columns=["idf_weights"])
+    print(df_idf.sort_values(by=['idf_weights']))
 
 
 def main():
