@@ -5,7 +5,7 @@
 
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import linear_kernel
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 def recommend(title):
@@ -25,12 +25,13 @@ def recommend(title):
 
     tfidf_matrix = tfidf.fit_transform(metadata['overview'])
 
-    print_tfidf_result(tfidf)
+    # Use formatted_tfidf just to watch on debug
+    formatted_tfidf = format_tfidf_results(tfidf, tfidf_matrix, metadata)
 
     # Agora preciso transformar tfidf_matrix em um formato que de pra fazer o .dot
     # metadata['watch'].dot(tfidf_matrix)
 
-    cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
+    cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
     indices = pd.Series(metadata.index, index=metadata['title']).drop_duplicates()
     idx = indices[title]
     sim_scores = list(enumerate(cosine_sim[idx]))
@@ -40,10 +41,18 @@ def recommend(title):
     return metadata['title'].iloc[movie_indices]
 
 
-def print_tfidf_result(tfidf):
-    '''How to print TFIDF: https://tinyurl.com/y67dduma'''
-    df_idf = pd.DataFrame(tfidf.idf_, index=tfidf.get_feature_names(),columns=["idf_weights"])
-    print(df_idf.sort_values(by=['idf_weights']))
+def format_tfidf_results(tfidf, tfidf_matrix, metadata):
+    result = {}
+    for idx, movies in enumerate(tfidf_matrix):
+        movie_title = metadata['title'][idx]
+        word_values = movies.data
+        word_indices = movies.indices
+        words_and_values = {}
+        for i, word_index in enumerate(word_indices):
+            word_text = tfidf.get_feature_names()[word_index]
+            words_and_values[word_text] = word_values[i]
+        result[movie_title] = words_and_values
+    return result
 
 
 def main():
