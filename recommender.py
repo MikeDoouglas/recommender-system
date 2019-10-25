@@ -8,7 +8,16 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-def recommend(title):
+def get_watched_movies_by_users():
+    user_data = pd.read_csv('datasets/testing.csv', low_memory=False)
+    users_data = user_data.groupby('userId')
+    user_ratings = users_data.get_group(29) # numero arbitrario
+    movie_id = user_ratings['movieId'].iloc[1] # numero arbitrario
+    movie_title = recommend(movie_id)
+    return movie_title
+
+    
+def recommend(movie_id):
     metadata = pd.read_csv('datasets/movies_metadata_test.csv', low_memory=False)
     tfidf = TfidfVectorizer(stop_words='english')
     metadata['overview'] = metadata['overview'].fillna('')
@@ -32,8 +41,9 @@ def recommend(title):
     # metadata['watch'].dot(tfidf_matrix)
 
     cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
-    indices = pd.Series(metadata.index, index=metadata['title']).drop_duplicates()
-    idx = indices[title]
+    indices = pd.Series(metadata.index, index=metadata['id']).drop_duplicates()
+    print(metadata)
+    idx = indices[movie_id]
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
     sim_scores = sim_scores[1:11]
@@ -56,7 +66,8 @@ def format_tfidf_results(tfidf, tfidf_matrix, metadata):
 
 
 def main():
-    print(recommend('Toy Story'))
+    #print(recommend('Toy Story'))
+    print(get_watched_movies_by_users())
 
 
 if __name__ == '__main__':
