@@ -10,25 +10,22 @@ from sklearn.metrics.pairwise import linear_kernel
 DATASET_PATH = 'datasets/metadata.csv'
 
 
-def recommend(title):
-    # Read CSV
-    metadata = pd.read_csv(DATASET_PATH, low_memory=False)
-
+def recommend(title, movies):
     # Define a TF-IDF Vectorizer Object. Remove all english stop words such as 'the', 'a'
     tfidf = TfidfVectorizer(stop_words='english')
 
     # Replace NaN with an empty string
-    metadata['overview'] = metadata['overview'].fillna('')
+    movies['overview'] = movies['overview'].fillna('')
 
     # Construct the required TF-IDF matrix by fitting and transforming the data
-    tfidf_matrix = tfidf.fit_transform(metadata['overview'])
+    tfidf_matrix = tfidf.fit_transform(movies['overview'])
 
     # Compute the cosine similarity matrix
     cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
 
     # Get the index of the movie that matches the title
     indices = pd.Series(
-        metadata.index, index=metadata['title']).drop_duplicates()
+        movies.index, index=movies['title']).drop_duplicates()
 
     # Get the index of the movie that matches the title
     idx = indices[title]
@@ -40,10 +37,10 @@ def recommend(title):
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
     # Get the scores of the 10 most similar movies
-    sim_scores = sim_scores[1:11]
+    sim_scores = sim_scores[1:6]
 
     # Get the movie indices
     movie_indices = [i[0] for i in sim_scores]
 
     # Return the top 10 most similar movies
-    return metadata['title'].iloc[movie_indices]
+    return movies['title'].iloc[movie_indices].to_dict()
