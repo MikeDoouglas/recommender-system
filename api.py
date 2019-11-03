@@ -30,8 +30,8 @@ def get_top_movies():
 def search_movie():
   title = request.args.get('movie-title')
   movies = pandas.read_csv(DATASET_PATH, low_memory=False)
-  movie = movies.loc[movies['title'] == title]
-  return movie.to_json()
+  movies_response = movies.loc[movies['title'].str.contains(title)]
+  return movies_response['title'].to_json()
 
 
 @app.route('/recommendation', methods=['GET'])
