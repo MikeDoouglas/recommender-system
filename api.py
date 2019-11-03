@@ -30,8 +30,17 @@ def get_top_movies():
 def search_movie():
   title = request.args.get('movie-title')
   movies = pandas.read_csv(DATASET_PATH, low_memory=False)
-  movies_response = movies.loc[movies['title'].str.contains(title)]
-  return movies_response['title'].to_json()
+  matched_movies = movies.loc[movies['title'].str.contains(title)]
+  movies_response = []
+  for index, row in matched_movies.iterrows():
+    movie = {
+      'id': row['id'],
+      'title': row['title'],
+      'poster_path': row['poster_path'],
+      'overview': row['overview']
+    }
+    movies_response.append(movie)
+  return json.dumps(movies_response)
 
 
 @app.route('/recommendation', methods=['GET'])
@@ -41,13 +50,26 @@ def recommendation():
   recommendations = recommend(movie_title, movies_dataframe)
 
   movies_response = []
-  for index, movie in recommendations.items():
-    movies_response.append({'id': index, 'movie': movie, 'is_recommended': True})
+  for index, row in recommendations.iterrows():
+    movie = {
+      'id': row['id'],
+      'title': row['title'],
+      'poster_path': row['poster_path'],
+      'overview': row['overview'],
+      'is_recommended': True
+    }
+    movies_response.append(movie)
 
   random_movies = movies_dataframe.sample(n=5)
-  random_movies = random_movies['title'].to_dict()
-  for index, movie in random_movies.items():
-    movies_response.append({'id': index, 'movie': movie, 'is_recommended': False})
+  for index, row in random_movies.iterrows():
+    movie = {
+      'id': row['id'],
+      'title': row['title'],
+      'poster_path': row['poster_path'],
+      'overview': row['overview'],
+      'is_recommended': False
+    }
+    movies_response.append(movie)
   random.shuffle(movies_response)
   return json.dumps(movies_response) 
 
