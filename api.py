@@ -52,7 +52,7 @@ def recommendation():
   return json.dumps(movies_response) 
 
 
-@app.route('/recommendation-rate', methods=['GET'])
+@app.route('/recommendation-rate', methods=['POST'])
 def recommendation_rate():
   user_name = request.form.get('user-name')
   rating = request.form.get('rate')
