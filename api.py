@@ -1,9 +1,16 @@
+# ################################################################################## #
+#            Copyright (c) 2019    #    Mike Douglas Oliveira Coelho                 #
+#            All rights reserved.  #    João Henrique Souza                          #
+# ################################################################################## #
+
 import csv
+import datetime
 import json
 import pandas
 import random
 
 from flask import Flask, request
+
 from recommender import recommend, DATASET_PATH
 
 
@@ -45,12 +52,19 @@ def recommendation():
   return json.dumps(movies_response) 
 
 
+@app.route('/recommendation-rate', methods=['GET'])
+def recommendation_rate():
+  user_name = request.form.get('user-name')
+  rating = request.form.get('rate')
+  now = datetime.datetime.now()
+  dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+  new_csv_row = [user_name, rating, dt_string]
 
+  with open('results/rates.csv', 'a+', newline='') as csvfile:
+      writer = csv.writer(csvfile)
+      writer.writerow(new_csv_row)
 
-# @app.route('/recommendation-rating', methods=['POST'])
-# def recommendation_rating():
-#   rating = request.form.get('rating')
-#   return 'recommendation rating endpoint'
+  return json.dumps(new_csv_row)
 
 
 if __name__ == '__main__':
