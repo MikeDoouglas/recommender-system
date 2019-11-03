@@ -1,5 +1,7 @@
 import csv
+import json
 import pandas
+import random
 
 from flask import Flask, request
 from recommender import recommend, DATASET_PATH
@@ -28,8 +30,21 @@ def search_movie():
 @app.route('/recommendation', methods=['GET'])
 def recommendation():
   movie_title = request.args.get('movie-title')
-  recommendations = recommend(movie_title)
-  return recommendations.to_json()
+  movies_dataframe = pandas.read_csv(DATASET_PATH)
+  recommendations = recommend(movie_title, movies_dataframe)
+
+  movies_response = []
+  for index, movie in recommendations.items():
+    movies_response.append({'id': index, 'movie': movie, 'is_recommended': True})
+
+  random_movies = movies_dataframe.sample(n=5)
+  random_movies = random_movies['title'].to_dict()
+  for index, movie in random_movies.items():
+    movies_response.append({'id': index, 'movie': movie, 'is_recommended': False})
+  random.shuffle(movies_response)
+  return json.dumps(movies_response) 
+
+
 
 
 # @app.route('/recommendation-rating', methods=['POST'])
