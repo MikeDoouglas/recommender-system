@@ -22,8 +22,18 @@ def get_top_movies():
   amount = request.args.get('amount')
   movies = pandas.read_csv(DATASET_PATH, low_memory=False)
   ordered_movies = movies.sort_values(['vote_count'], ascending=False)
-  ordered_movies = ordered_movies.head(amount)
-  return ordered_movies.to_json()
+  ordered_movies = ordered_movies.head(int(amount))
+  movies_response = []
+  for index, row in ordered_movies.iterrows():
+    movie = {
+      'id': row['id'],
+      'title': row['title'],
+      'poster_path': row['poster_path'],
+      'overview': row['overview']
+    }
+    movies_response.append(movie)
+  random.shuffle(movies_response)
+  return json.dumps(movies_response)
 
 
 @app.route('/search', methods=['GET'])
@@ -90,4 +100,4 @@ def recommendation_rate():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port='3000')
+    app.run(port='3000')
