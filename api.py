@@ -84,10 +84,10 @@ def recommendation():
   return json.dumps(movies_response) 
 
 
-@app.route('/recommendation-rate', methods=['POST'])
+@app.route('/recommendation-rate', methods=['GET'])
 def recommendation_rate():
-  user_name = request.form.get('user-name')
-  rating = request.form.get('rate')
+  user_name = request.args.get('username')
+  rating = request.args.get('rating')
   now = datetime.datetime.now()
   dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
   new_csv_row = [user_name, rating, dt_string]

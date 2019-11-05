@@ -43,4 +43,4 @@ def recommend(title, movies):
     movie_indices = [i[0] for i in sim_scores]
 
     # Return the top 10 most similar movies
-    return movies['title'].iloc[movie_indices].to_dict()
+    return movies.iloc[movie_indices]
